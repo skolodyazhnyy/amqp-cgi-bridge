@@ -13,7 +13,6 @@ type Processor func(ctx context.Context, headers map[string]interface{}, body []
 type Queue struct {
 	Name        string
 	Parallelism int
-	Requeue     bool
 	Processor   Processor
 }
 
@@ -203,7 +202,7 @@ loop:
 				default:
 					c.log.Debugf("Message with ID #%v (%v) processed with error: %v", d.MessageId, d.DeliveryTag, err)
 
-					if err := d.Reject(queue.Requeue); err != nil {
+					if err := d.Reject(false); err != nil {
 						return err
 					}
 				}

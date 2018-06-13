@@ -20,7 +20,6 @@ var config struct {
 	Consumers []struct {
 		Queue       string
 		Parallelism int
-		Requeue     bool
 		Env         map[string]string
 		FastCGI     struct {
 			Net        string
@@ -81,7 +80,6 @@ func main() {
 		queues = append(queues, bridge.Queue{
 			Name:        c.Queue,
 			Parallelism: c.Parallelism,
-			Requeue:     c.Requeue,
 			Processor:   p,
 		})
 	}
