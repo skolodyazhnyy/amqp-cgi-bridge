@@ -1,0 +1,11 @@
+amqp_url: "amqp://localhost"
+consumers:
+  - queue: "messages"
+    fastcgi:
+      net: "tcp"
+      addr: "127.0.0.1:9000"
+      script_name: "index.php"
+    requeue: false
+    parallelism: 10
+    env:
+      QUEUE_NAME: "messages"
