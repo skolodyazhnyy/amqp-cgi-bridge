@@ -1,10 +1,17 @@
+# AMQP URI (see https://www.rabbitmq.com/uri-spec.html)
 amqp_url: "amqp://localhost"
+
+# an array of consumers
 consumers:
-  - queue: "messages"
+  - # a queue to consume messages
+    queue: "messages" 
+    # address of FastCGI server and name of the script to run to process messages
     fastcgi:
       net: "tcp"
       addr: "127.0.0.1:9000"
       script_name: "index.php"
+    # number of messages to be processed in parallel
     parallelism: 10
+    # additional environment variables
     env:
       QUEUE_NAME: "messages"

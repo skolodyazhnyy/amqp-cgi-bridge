@@ -77,6 +77,10 @@ func main() {
 			p = bridge.ProcessorWithEnv(p, c.Env)
 		}
 
+		if c.Parallelism <= 0 {
+			c.Parallelism = 1
+		}
+
 		queues = append(queues, bridge.Queue{
 			Name:        c.Queue,
 			Parallelism: c.Parallelism,
