@@ -1,7 +1,7 @@
 # AMQP FastCGI bridge
 
 AMQP FastCGI bridge is an AMQP consumer which consumes messages from AMQP server and process them using FastCGI server.
-It was built to address problems of consuming AMQP messages with PHP. [More information](https://medium.com/@sergey.kolodyazhnyy).
+It was built to address problems of consuming AMQP messages with PHP. [More information](https://medium.com/@sergey.kolodyazhnyy/consuming-amqp-messages-in-php-6650c06936fa).
 
 ## Usage
 
@@ -29,10 +29,6 @@ consumers:
 
 Then, you need to configure and start PHP-FPM server (or any other FastCGI server) to process messages.
 
-Your PHP script to process messages will work more or less same way as with Web Server, message body will be delivered in request body, and AMQP headers will be available through `$_SERVER` variable.
+Your PHP script to process messages will work more or less same way as with Web Server, message body will be delivered
+in request body, and AMQP headers will be available through `$_SERVER` variable.
 
-Here is an example of PHP script which prints message content and AMQP headers:
-
-```
-
-```
