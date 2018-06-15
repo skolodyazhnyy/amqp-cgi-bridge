@@ -3,6 +3,14 @@
 AMQP FastCGI bridge is an AMQP consumer which consumes messages from AMQP server and process them using FastCGI server.
 It was built to address problems of consuming AMQP messages with PHP. [More information](https://medium.com/@sergey.kolodyazhnyy/consuming-amqp-messages-in-php-6650c06936fa).
 
+## Install
+
+You can download binary from [github release page](https://github.com/skolodyazhnyy/amqp-cgi-bridge/releases), or using go get:
+
+```
+go get github.com/skolodyazhnyy/amqp-cgi-bridge
+```
+
 ## Usage
 
 Application requires simple YAML configuration file which contains AMQP URL and list of queues to consume messages.
