@@ -17,35 +17,33 @@ func NewFastCGIProcessor(net, addr, script string, log logger) Processor {
 		}
 
 		env := map[string]string{
-			"SERVER_PROTOCOL": "AMQP/0.9",
-			"SERVER_SOFTWARE": "AMQP CGI Bridge",
-			"REQUEST_METHOD":  "POST",
-			"REMOTE_ADDR":     "127.0.0.1",
+			"REQUEST_METHOD": "POST",
+			"REQUEST_URI":    "/",
 		}
-
 		for k, v := range headers {
 			env[strings.ToUpper(k)] = fmt.Sprint(v)
 		}
 
+		env["CONTENT_LENGTH"] = fmt.Sprint(len(body))
 		env["SCRIPT_FILENAME"] = script
 
-		resp, err := conn.Request(env, bytes.NewReader(body))
+		resp, err := conn.Request(env, bytes.NewReader(append(body, 13, 10, 13, 10)))
 		if err != nil {
 			log.Errorf("An error occurred while making FastCGI request: %v", err)
 			return ErrProcessorInternal
 		}
 
-		defer resp.Body.Close()
+		c := resp.StatusCode / 100
 
-		if resp.StatusCode == 0 {
+		if c == 0 {
 			return ErrUnknownStatus
 		}
 
-		if resp.StatusCode/100 == 2 {
+		if c == 2 {
 			return nil
 		}
 
-		if resp.StatusCode/100 == 3 || resp.StatusCode/100 == 4 {
+		if c == 3 || c == 4 {
 			log.Errorf("Request to FastCGI server has returned %v status code which probably means request configuration is invalid", resp.StatusCode)
 			return ErrRequestFailed
 		}
