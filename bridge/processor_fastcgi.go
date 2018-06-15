@@ -5,23 +5,22 @@ import (
 	"context"
 	"fmt"
 	"github.com/tomasen/fcgi_client"
-	"strings"
 )
 
 func NewFastCGIProcessor(net, addr, script string, log logger) Processor {
-	return func(ctx context.Context, headers map[string]interface{}, body []byte) error {
+	return func(ctx context.Context, env map[string]string, body []byte) error {
 		conn, err := fcgiclient.Dial(net, addr)
 		if err != nil {
 			log.Errorf("Unable to connect to FastCGI server: %v", err)
 			return ErrProcessorInternal
 		}
 
-		env := map[string]string{
-			"REQUEST_METHOD": "POST",
-			"REQUEST_URI":    "/",
+		if _, ok := env["REQUEST_METHOD"]; !ok {
+			env["REQUEST_METHOD"] = "POST"
 		}
-		for k, v := range headers {
-			env[strings.ToUpper(k)] = fmt.Sprint(v)
+
+		if _, ok := env["REQUEST_URI"]; !ok {
+			env["REQUEST_URI"] = "/"
 		}
 
 		env["CONTENT_LENGTH"] = fmt.Sprint(len(body))

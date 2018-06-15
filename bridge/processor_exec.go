@@ -9,7 +9,7 @@ import (
 )
 
 func NewExecProcessor(cmd string, args ...string) Processor {
-	return func(ctx context.Context, headers map[string]interface{}, body []byte) error {
+	return func(ctx context.Context, headers map[string]string, body []byte) error {
 		c := exec.CommandContext(ctx, cmd, args...)
 		c.Stdin = bytes.NewReader(body)
 		c.Stderr = ioutil.Discard

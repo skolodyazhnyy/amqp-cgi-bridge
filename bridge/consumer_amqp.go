@@ -2,13 +2,15 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 	"github.com/streadway/amqp"
 	"golang.org/x/sync/errgroup"
+	"strings"
 	"sync"
 	"time"
 )
 
-type Processor func(ctx context.Context, headers map[string]interface{}, body []byte) error
+type Processor func(ctx context.Context, headers map[string]string, body []byte) error
 
 type Queue struct {
 	Name        string
@@ -177,7 +179,7 @@ loop:
 
 				c.log.Debugf("Processing message with ID #%v (%v)", d.MessageId, d.DeliveryTag)
 
-				err := queue.Processor(ctx, d.Headers, d.Body)
+				err := queue.Processor(ctx, headers(d), d.Body)
 				switch err {
 				case nil:
 					c.log.Debugf("Message with ID #%v (%v) successfully processed", d.MessageId, d.DeliveryTag)
@@ -231,4 +233,32 @@ func isStoppingWithTimeout(ctx context.Context, duration time.Duration) bool {
 	case <-time.After(duration):
 		return false
 	}
+}
+
+func headers(d amqp.Delivery) map[string]string {
+	h := map[string]string{
+		"CONTENT_TYPE":     d.ContentType,
+		"CONTENT_ENCODING": d.ContentEncoding,
+		"DELIVERY_MODE":    fmt.Sprint(d.DeliveryMode),
+		"PRIORITY":         fmt.Sprint(d.Priority),
+		"CORRELATION_ID":   d.CorrelationId,
+		"REPLY_TO":         d.ReplyTo,
+		"EXPIRATION":       d.Expiration,
+		"MESSAGE_ID":       d.MessageId,
+		"TIMESTAMP":        fmt.Sprint(d.Timestamp),
+		"TYPE":             d.Type,
+		"USER_ID":          d.UserId,
+		"APP_UD":           d.AppId,
+		"CONSUMER_TAG":     d.ConsumerTag,
+		"DELIVERY_TAG":     fmt.Sprint(d.DeliveryTag),
+		"REDELIVERED":      fmt.Sprint(d.Redelivered),
+		"EXCHANGE":         d.Exchange,
+		"ROUTING_KEY":      d.RoutingKey,
+	}
+
+	for k, v := range d.Headers {
+		h["AMQP_"+strings.ToUpper(k)] = fmt.Sprint(v)
+	}
+
+	return h
 }
