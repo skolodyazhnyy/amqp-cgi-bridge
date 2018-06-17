@@ -15,6 +15,10 @@ func NewFastCGIProcessor(net, addr, script string, log logger) Processor {
 			return ErrProcessorInternal
 		}
 
+		if env == nil {
+			env = map[string]string{}
+		}
+
 		if _, ok := env["REQUEST_METHOD"]; !ok {
 			env["REQUEST_METHOD"] = "POST"
 		}

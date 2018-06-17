@@ -35,7 +35,7 @@ func TestProcessorWithEnv_Override(t *testing.T) {
 
 	p := func(c context.Context, h map[string]string, b []byte) error {
 		if x := h["foo"]; x != "bar" {
-			t.Errorf("Environment variables are not injected")
+			t.Errorf("Environment variables are overriden")
 		}
 
 		close(done)
