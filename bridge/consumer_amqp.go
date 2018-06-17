@@ -14,6 +14,7 @@ type Processor func(ctx context.Context, headers map[string]string, body []byte)
 
 type Queue struct {
 	Name        string
+	Prefetch    int
 	Parallelism int
 	Processor   Processor
 }
@@ -154,7 +155,7 @@ func (c *AMQPConsumer) consume(ctx context.Context, queue Queue, conn *amqp.Conn
 	defer c.log.Infof("Consumer for queue %v has stopped", queue.Name)
 	defer ch.Close()
 
-	if err := ch.Qos(queue.Parallelism, 0, false); err != nil {
+	if err := ch.Qos(queue.Prefetch, 0, false); err != nil {
 		return err
 	}
 

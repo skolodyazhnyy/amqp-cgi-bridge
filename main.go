@@ -19,6 +19,7 @@ var config struct {
 	AMQPURL   string `yaml:"amqp_url"`
 	Consumers []struct {
 		Queue       string
+		Prefetch    *int
 		Parallelism int
 		Env         map[string]string
 		FastCGI     struct {
@@ -64,6 +65,18 @@ func main() {
 	var queues []bridge.Queue
 
 	for _, c := range config.Consumers {
+		if c.FastCGI.Net == "" {
+			c.FastCGI.Net = "tcp"
+		}
+
+		if c.FastCGI.Addr == "" {
+			c.FastCGI.Addr = "127.0.0.1:9000"
+		}
+
+		if c.FastCGI.ScriptName == "" {
+			c.FastCGI.ScriptName = "index.php"
+		}
+
 		p := bridge.NewFastCGIProcessor(
 			c.FastCGI.Net,
 			c.FastCGI.Addr,
@@ -81,8 +94,13 @@ func main() {
 			c.Parallelism = 1
 		}
 
+		if c.Prefetch == nil {
+			c.Prefetch = &c.Parallelism
+		}
+
 		queues = append(queues, bridge.Queue{
 			Name:        c.Queue,
+			Prefetch:    *c.Prefetch,
 			Parallelism: c.Parallelism,
 			Processor:   p,
 		})
