@@ -47,6 +47,7 @@ func NewAMQPConsumer(ctx context.Context, url string, queues []Queue, log logger
 // Run message processing routine
 func (c *AMQPConsumer) run() {
 	c.wg.Add(1)
+	b := &backOff{}
 
 	go func() {
 		defer c.wg.Done()
@@ -61,9 +62,11 @@ func (c *AMQPConsumer) run() {
 				return
 			}
 
-			c.log.Infof("Waiting 5 seconds before re-connect")
+			t := b.Timeout()
 
-			if isStoppingWithTimeout(c.ctx, 5*time.Second) {
+			c.log.Infof("Waiting %v before re-connect", t)
+
+			if isStoppingWithTimeout(c.ctx, t) {
 				return
 			}
 		}
@@ -91,6 +94,9 @@ func (c *AMQPConsumer) serve() error {
 	// create wait group for all individual queue consumers
 	wg := sync.WaitGroup{}
 
+	// wait for all individual queue consumers to stop before returning
+	defer wg.Wait()
+
 	// create context for current connection attempt
 	ctx, cancel := context.WithCancel(c.ctx)
 
@@ -99,6 +105,8 @@ func (c *AMQPConsumer) serve() error {
 
 		go func(queue Queue) {
 			defer wg.Done()
+
+			b := &backOff{}
 
 			// consumer re-start loop: restarts consumer in case an error occurs
 			for {
@@ -110,9 +118,11 @@ func (c *AMQPConsumer) serve() error {
 					return
 				}
 
-				c.log.Infof("Waiting 5 seconds before re-starting consumer for %v", queue.Name)
+				t := b.Timeout()
 
-				if isStoppingWithTimeout(ctx, 5*time.Second) {
+				c.log.Infof("Waiting %v before re-starting consumer for %v", t, queue.Name)
+
+				if isStoppingWithTimeout(ctx, t) {
 					return
 				}
 			}
@@ -124,15 +134,12 @@ func (c *AMQPConsumer) serve() error {
 	conn.NotifyClose(closing)
 
 	select {
-	case <-closing:
+	case err := <-closing:
 		cancel()
+		return err
 	case <-ctx.Done():
+		return nil
 	}
-
-	// wait for all individual queue consumers to stop
-	wg.Wait()
-
-	return nil
 }
 
 // Consume messages from individual queue. When this method returns all resources used by individual queue consumer

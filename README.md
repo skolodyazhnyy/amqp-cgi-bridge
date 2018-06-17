@@ -5,7 +5,7 @@ It was built to address problems of consuming AMQP messages with PHP. [More info
 
 ## Install
 
-You can download binary from [github release page](https://github.com/skolodyazhnyy/amqp-cgi-bridge/releases), or using go get:
+You can download binary from [GitHub release page](https://github.com/skolodyazhnyy/amqp-cgi-bridge/releases), or using go get:
 
 ```
 go get github.com/skolodyazhnyy/amqp-cgi-bridge
