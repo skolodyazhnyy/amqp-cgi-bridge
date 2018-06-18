@@ -47,8 +47,7 @@ func NewFastCGIProcessor(net, addr, script string, log logger) Processor {
 		}
 
 		if c == 3 || c == 4 {
-			log.Errorf("Request to FastCGI server has returned %v status code which probably means request configuration is invalid", resp.StatusCode)
-			return ErrRequestFailed
+			return ErrProcessingError
 		}
 
 		return ErrProcessingFailed

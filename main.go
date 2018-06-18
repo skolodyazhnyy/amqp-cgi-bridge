@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"time"
 )
 
 var version = "unknown"
@@ -18,11 +19,12 @@ var commit = "unknown"
 var config struct {
 	AMQPURL   string `yaml:"amqp_url"`
 	Consumers []struct {
-		Queue       string
-		Prefetch    *int
-		Parallelism int
-		Env         map[string]string
-		FastCGI     struct {
+		Queue          string
+		Prefetch       *int
+		Parallelism    int
+		FailureTimeout time.Duration
+		Env            map[string]string
+		FastCGI        struct {
 			Net        string
 			Addr       string
 			ScriptName string `yaml:"script_name"`
@@ -98,11 +100,16 @@ func main() {
 			c.Prefetch = &c.Parallelism
 		}
 
+		if c.FailureTimeout == 0 {
+			c.FailureTimeout = 10 * time.Second
+		}
+
 		queues = append(queues, bridge.Queue{
-			Name:        c.Queue,
-			Prefetch:    *c.Prefetch,
-			Parallelism: c.Parallelism,
-			Processor:   p,
+			Name:           c.Queue,
+			Prefetch:       *c.Prefetch,
+			Parallelism:    c.Parallelism,
+			FailureTimeout: c.FailureTimeout,
+			Processor:      p,
 		})
 	}
 

@@ -30,7 +30,7 @@ func TestFastCGIProcessor_BodySize(t *testing.T) {
 	p := NewFastCGIProcessor("tcp", addr, TestScript, &nilLogger{})
 
 	err := p(context.Background(), map[string]string{"TEST": "BODYSIZE10"}, []byte("1234567890"))
-	if err == ErrRequestFailed {
+	if err == ErrProcessingError {
 		t.Fatalf("It seems body size does not match expected value, check PHP-FPM logs for more details")
 	}
 
@@ -48,7 +48,7 @@ func TestFastCGIProcessor_EnvVariables(t *testing.T) {
 	p := NewFastCGIProcessor("tcp", addr, TestScript, &nilLogger{})
 
 	err := p(context.Background(), map[string]string{"TEST": "ENVVAR", "HTTP_FOO": "BAR"}, nil)
-	if err == ErrRequestFailed {
+	if err == ErrProcessingError {
 		t.Fatalf("It seems environment variables are not passed to PHP script, check PHP-FPM logs for more details")
 	}
 

@@ -13,10 +13,11 @@ import (
 type Processor func(ctx context.Context, headers map[string]string, body []byte) error
 
 type Queue struct {
-	Name        string
-	Prefetch    int
-	Parallelism int
-	Processor   Processor
+	Name           string
+	Prefetch       int
+	Parallelism    int
+	FailureTimeout time.Duration
+	Processor      Processor
 }
 
 type AMQPConsumer struct {
@@ -185,34 +186,41 @@ loop:
 					<-sem
 				}()
 
-				c.log.Debugf("Processing message with ID #%v (%v)", d.MessageId, d.DeliveryTag)
+				logctx := map[string]interface{}{
+					"message_id":   d.MessageId,
+					"delivery_tag": d.DeliveryTag,
+				}
+
+				c.log.Debug("Processing message", logctx)
 
 				err := queue.Processor(ctx, headers(d), d.Body)
 				switch err {
-				case nil:
-					c.log.Debugf("Message with ID #%v (%v) successfully processed", d.MessageId, d.DeliveryTag)
+				case nil: // 2xx
+					c.log.Debug("Message successfully processed", logctx)
 
 					if err := d.Ack(false); err != nil {
 						return err
 					}
-				case ErrProcessorInternal:
-					// we couldn't deliver message to processor, so it make sense to put it back to the queue
-					c.log.Debugf("Message with ID #%v (%v) not processed due an internal error", d.MessageId, d.DeliveryTag)
-
-					// hold message for a little and put back to the queue, otherwise same message will be consumed right away
-					// putting a lot of pressure on CPU
-					select {
-					case <-time.After(time.Second):
-					case <-ctx.Done():
-					}
-
-					if err := d.Reject(true); err != nil {
-						return err
-					}
-				default:
-					c.log.Debugf("Message with ID #%v (%v) processed with error: %v", d.MessageId, d.DeliveryTag, err)
+				case ErrProcessingError: // 4xx error
+					c.log.Debug(fmt.Sprintf("Message processed with error: %v", err), logctx)
 
 					if err := d.Reject(false); err != nil {
+						return err
+					}
+				case ErrProcessingFailed: // 5xx error
+					fallthrough
+				case ErrUnknownStatus: // status code is missing (could be 2xx, could be fatal error)
+					fallthrough
+				case ErrProcessorInternal: // could not perform request
+					fallthrough
+				default:
+					t := queue.FailureTimeout
+					c.log.Error(fmt.Sprintf("Message processing failed: %v. Waiting %v before putting message back to the queue.", err, t), logctx)
+
+					// wait a bit before putting message back to the queue
+					wait(ctx, t)
+
+					if err := d.Reject(true); err != nil {
 						return err
 					}
 				}
@@ -223,6 +231,13 @@ loop:
 	}
 
 	return eg.Wait()
+}
+
+func wait(ctx context.Context, duration time.Duration) {
+	select {
+	case <-time.After(duration):
+	case <-ctx.Done():
+	}
 }
 
 func isStopping(ctx context.Context) bool {

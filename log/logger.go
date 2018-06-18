@@ -39,7 +39,7 @@ func (l *Logger) debug(msg string, rec R) {
 	l.backend.Record(rec.With(l.record))
 }
 
-func (l *Logger) Debug(msg string, rec R) {
+func (l *Logger) Debug(msg string, rec map[string]interface{}) {
 	l.debug(msg, rec)
 }
 
@@ -58,7 +58,7 @@ func (l *Logger) info(msg string, rec R) {
 	l.backend.Record(rec.With(l.record))
 }
 
-func (l *Logger) Info(msg string, rec R) {
+func (l *Logger) Info(msg string, rec map[string]interface{}) {
 	l.info(msg, rec)
 }
 
@@ -78,7 +78,7 @@ func (l *Logger) error(msg string, rec R) {
 	l.backend.Record(rec.With(l.record))
 }
 
-func (l *Logger) Error(msg string, rec R) {
+func (l *Logger) Error(msg string, rec map[string]interface{}) {
 	l.error(msg, rec)
 }
 
@@ -98,7 +98,7 @@ func (l *Logger) warning(msg string, rec R) {
 	l.backend.Record(rec.With(l.record))
 }
 
-func (l *Logger) Warning(msg string, rec R) {
+func (l *Logger) Warning(msg string, rec map[string]interface{}) {
 	l.warning(msg, rec)
 }
 
