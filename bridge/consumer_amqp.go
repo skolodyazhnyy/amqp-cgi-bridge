@@ -256,7 +256,7 @@ func headers(d amqp.Delivery) map[string]string {
 		"TIMESTAMP":        fmt.Sprint(d.Timestamp),
 		"TYPE":             d.Type,
 		"USER_ID":          d.UserId,
-		"APP_UD":           d.AppId,
+		"APP_ID":           d.AppId,
 		"CONSUMER_TAG":     d.ConsumerTag,
 		"DELIVERY_TAG":     fmt.Sprint(d.DeliveryTag),
 		"REDELIVERED":      fmt.Sprint(d.Redelivered),
