@@ -31,13 +31,13 @@ func NewFastCGIProcessor(net, addr, script string, log logger) Processor {
 		env["SCRIPT_FILENAME"] = script
 
 		resp, err := conn.Request(env, bytes.NewReader(append(body, 13, 10, 13, 10)))
+		conn.Close()
 		if err != nil {
 			log.Errorf("An error occurred while making FastCGI request: %v", err)
 			return ErrProcessorInternal
 		}
 
 		c := resp.StatusCode / 100
-
 		if c == 0 {
 			return ErrUnknownStatus
 		}
