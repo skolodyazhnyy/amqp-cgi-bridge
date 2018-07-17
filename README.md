@@ -30,6 +30,8 @@ consumers:
       script_name: "/path/to/script.php"
     # number of messages to be processed in parallel
     parallelism: 10
+    # prefetch value for consumer (if not specified, same as parallelism)
+    prefetch: 10
     # additional environment variables
     env:
       QUEUE_NAME: "messages"
