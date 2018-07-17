@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/skolodyazhnyy/amqp-cgi-bridge/bridge"
-	"github.com/skolodyazhnyy/amqp-cgi-bridge/log"
+	"github.com/skolodyazhnyy/go-common/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -54,7 +54,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	logger := log.NewX(*logfmt, os.Stdout, log.DefaultTextFormat).With(log.R{
+	logger := log.New(*logfmt, os.Stdout, log.DefaultTextFormat).With(log.R{
 		"app":     "amqp-cgi-bridge",
 		"version": version,
 	})
